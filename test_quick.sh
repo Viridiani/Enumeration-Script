@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "" > nmap_results.txt
+echo "" > gobuster_results.txt
+
 read -p "Victim IP Address? " IP_ADDR
 echo "Pinging $IP_ADDR to ensure it is up (takes 10 seconds)."
 
@@ -36,10 +39,6 @@ then
 	service=https
 fi
 
-echo "Abridged results: "
-echo $( grep "/tcp " -E nmap_results.txt )
-echo $( grep "/udp" -E nmap_results.txt )
-
 if [ $https -gt 2 ] || [ $http -gt 2 ]
 then
 	webport=$( grep "http" -E nmap_results.txt | sed '2,2!d' | cut -d/ -f1 )	
@@ -54,7 +53,14 @@ fi
 echo "cat the text files created for the complete results."
 echo "Commands run: "
 echo "nmap -sV -v -sC -p 1-1000 $IP_ADDR"
-echo "gobuster dir --url http://$IP_ADDR:$webport/ -x html,php,txt -w common.txt"
-
+echo "gobuster dir --url $service://$IP_ADDR:$webport/ -x html,php,txt -w common.txt"
 echo "If you didn't get the results you wanted, try either scanning different ports or using a different wordlist file on the web directory scan."
 
+echo "Quick results:"
+echo "Ports:"
+grep "/tcp" -E nmap_results.txt
+grep "/udp" -E nmap_results.txt
+echo " "
+echo "Website Content:"
+grep "Status: 200" -E gobuster_results.txt
+grep "Status: 301" -E gobuster_results.txt
